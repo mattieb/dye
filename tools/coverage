@@ -1,0 +1,15 @@
+#!/bin/sh
+
+set -eu
+
+uid="$(id -u)"
+gid="$(id -g)"
+
+docker run \
+	-it \
+	--rm \
+	-u "${uid}:${gid}" \
+	-v "${PWD}:/src" \
+	shellspec/shellspec:kcov --kcov --shell bash
+
+echo "${PWD}/coverage/index.html"

@@ -1,0 +1,117 @@
+#!/bin/sh
+# shellcheck disable=SC2312
+#
+#   Demos many of dye's features.
+#
+#   The command use is intentionally varied, using wrapped mode or manual,
+#   as well as several aliases for several emphases.
+#
+
+set -eu
+
+# shellcheck disable=SC1091
+. ./dye.sh
+
+dye setup
+
+cat <<EOT
+
+$(dye so "|                         |")
+$(dye so "|  dye's delightful demo  |")
+$(dye so "|                         |")
+
+dye is a $(dye bold "$(dye magenta "portable")"
+	) and $(dye bold "$(dye cyan "respectful")"
+	) color library for shell scripts.
+
+It's $(dye bold "$(dye magenta "portable")"
+	) because it should run anywhere a POSIX shell exists.
+
+It's $(dye bold "$(dye cyan "respectful")"
+	) because it carefully determines whether to enable
+color based on environment as well as user and developer preferences.
+$(dye italic "(Try this demo again with NO_COLOR set!)")
+
+$(dye yellow)It has lots of colors and emphases:$(dye reset)
+
+It lets you use many $(dye red "c"
+	)$(dye yellow "o"
+	)$(dye green "l"
+	)$(dye cyan "o"
+	)$(dye blue "r"
+	)$(dye magenta "s"
+	) as well as $(dye ul "several"
+	) $(dye i "cool"
+	) $(dye bold "text"
+	) $(dye so "styles").
+
+(And no, we didn't forget $(dye bg blue "$(dye yellow "background colors")")!)
+
+$(dye dim "You can even do dark $(dye red "c")$(dye dim
+	)$(dye yellow "o")$(dye dim
+	)$(dye green "l")$(dye dim
+	)$(dye cyan "o")$(dye dim
+	)$(dye blue "r")$(dye dim
+	)$(dye magenta "s")$(dye dim
+	) if you want...")
+
+$(dye yellow)It supports $(dye begin ul)256-color terminals$(dye end ul)*:$(dye reset)
+
+EOT
+
+print_range() (
+	i="$1"
+	end="$2"
+	while [ "${i}" -le "${end}" ]; do
+		dye fg "${i}"
+		printf "%3s " "${i}"
+		dye reset
+		i=$((i + 1))
+	done
+	printf "\n"
+)
+
+print_range 0 15
+printf "\n"
+
+j=16
+while [ "${j}" -le 231 ]; do
+	print_range "${j}" $((j + 17))
+	j=$((j + 36))
+done
+printf "\n"
+
+j=34
+while [ "${j}" -le 231 ]; do
+	print_range "${j}" $((j + 17))
+	j=$((j + 36))
+done
+printf "\n"
+
+print_range 232 243
+print_range 244 255
+
+cat <<EOT
+
+$(dye i "*Not what you expected? Check your TERM environment variable.")
+
+$(dye yellow)It can be used several ways:$(dye reset)
+
+$(dye bold "$(dye blue "==>")") Wrapping quoted text: $(
+	dye so "Like \$(dye green \"this\").")
+
+$(dye bold "$(dye blue "==>")") Unquoted text: $(
+	dye so "Like \$(dye green this, if whitespace is not important.)")
+
+$(dye bold "$(dye blue "==>")") Manual: $(
+	dye so "Like \$(dye green)this\$(dye reset).")
+
+You can embed it or source it, depending on your needs.
+
+You can also just use parts of it, like the enable-color detection.
+
+And it's $(dye ul "completely tested") with $(dye bold "shellspec")!
+
+$(dye brightblue)$(dye bold)https://mattiebee.dev/dye$(dye reset)
+
+EOT
