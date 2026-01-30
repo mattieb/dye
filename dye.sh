@@ -30,13 +30,17 @@ dye_detect() {
 	return 0
 }
 
+dye_puts() {
+	printf "%s" "$1"
+}
+
 dye_out() (
 	_1="$1"
 	_2="${2-}"
 	test -n "$1" && shift
 	test -n "${1-}" && shift
 	if [ -z "${DYE_COLORS-}" ]; then
-		printf "%s" "$*"
+		dye_puts "$*"
 		return
 	fi
 	if [ -z "${_2}" ] || [ -z "${1-}" ]; then
@@ -44,7 +48,7 @@ dye_out() (
 		return
 	fi
 	eval "tput ${_1}" || true
-	printf "%s" "$*"
+	dye_puts "$*"
 	eval "tput ${_2}" || true
 )
 
@@ -76,6 +80,29 @@ dye_synth() {
 	echo "$1"
 }
 
+dye_render() (
+	b="$1"
+	while [ -n "${b}" ]; do
+		case "${b}" in
+		\{\{*)
+			p="${b#\{\{}"
+			b="${p#*\}\}}"
+			p="${p%%\}\}*}"
+			eval "dye ${p}"
+			;;
+		*)
+			s="${b%%\{\{*}"
+			if [ "${s}" != "${b}" ]; then
+				b="{{${b#*\{\{}"
+			else
+				b=""
+			fi
+			dye_puts "${s}"
+			;;
+		esac
+	done
+)
+
 dye() {
 	if [ "$1" = "setup" ]; then
 		shift
@@ -87,6 +114,13 @@ dye() {
 		_1="$1"
 		shift
 		case "${_1}" in
+		p | print)
+			dye_render "$@"
+			printf "\n"
+			;;
+		write)
+			dye_render "$@"
+			;;
 		fg)
 			c="$(dye_color "$1")" || return
 			c="$(dye_synth "${c}")" || dye_out bold
