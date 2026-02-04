@@ -84,6 +84,16 @@ dye_render() (
 	b="$1"
 	while [ -n "${b}" ]; do
 		case "${b}" in
+		\\)
+			b=""
+			dye_puts "\\"
+			;;
+		\\*)
+			p="${b#\\}"
+			b="${p#?}"
+			p="${p%"${b}"}"
+			dye_puts "${p}"
+			;;
 		\{\{*)
 			p="${b#\{\{}"
 			b="${p#*\}\}}"
@@ -91,13 +101,20 @@ dye_render() (
 			eval "dye ${p}"
 			;;
 		*)
-			s="${b%%\{\{*}"
-			if [ "${s}" != "${b}" ]; then
-				b="{{${b#*\{\{}"
-			else
+			s1="${b%%\{\{*}"
+			s2="${b%%\\*}"
+			if [ "${s1}" = "${s2}" ]; then
 				b=""
+				dye_puts "${s1}"
+				break
 			fi
-			dye_puts "${s}"
+			if [ ${#s1} -lt ${#s2} ]; then
+				b="{{${b#*\{\{}"
+				dye_puts "${s1}"
+			else
+				b="\\${b#*\\}"
+				dye_puts "${s2}"
+			fi
 			;;
 		esac
 	done

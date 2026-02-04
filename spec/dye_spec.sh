@@ -314,6 +314,36 @@ Describe "dye"
 		The output should equal "\e{smul}we don't need quoting here\e{rmul}"
 	End
 
+	Describe "templated output"
+		DYE_COLORS=256
+
+		Example "print adds newlines"
+			run() {
+				dye print "we needed {{bold}}templating{{reset}}"
+				dye print "and didn't know it"
+			}
+
+			expected() {
+				%text
+				#|we needed \e{bold}templating\e{sgr0}
+				#|and didn't know it
+			}
+
+			When call run
+			The output should equal "$(expected)"
+		End
+
+		Example "write doesn't use newlines"
+			run() {
+				dye write "{{red}}these {{yellow}}words {{green}}stay "
+				dye write "{{cyan}}on {{blue}}one {{magenta}}line"
+			}
+
+			When call run
+			The output should equal "\e{setaf;1}these \e{setaf;3}words \e{setaf;2}stay \e{setaf;6}on \e{setaf;4}one \e{setaf;5}line"
+		End
+	End
+
 	Describe "setup"
 		Example "no arguments"
 			dye_detect() {
