@@ -3,9 +3,6 @@
 #
 #   Demos many of dye's features.
 #
-#   The command use is intentionally varied, using wrapped mode or manual,
-#   as well as several aliases for several emphases.
-#
 
 set -eu
 
@@ -14,50 +11,38 @@ set -eu
 
 dye setup
 
-cat <<EOT
+dye write "\
 
-$(dye so "|                         |")
-$(dye so "|  dye's delightful demo  |")
-$(dye so "|                         |")
+{{so}}|                         |{{end so}}
+{{so}}|  dye's delightful demo  |{{end so}}
+{{so}}|                         |{{end so}}
 
-dye is a $(dye bold "$(dye magenta "portable")"
-	) and $(dye bold "$(dye cyan "respectful")"
-	) color library for shell scripts.
+dye is a {{bold}}{{magenta}}portable{{reset
+}} and {{bold}}{{cyan}}respectful{{reset
+}} color library for shell scripts.
 
-It's $(dye bold "$(dye magenta "portable")"
-	) because it should run anywhere a POSIX shell exists.
+It's {{bold}}{{magenta}}portable{{reset
+}} because it should run anywhere a POSIX shell exists.
 
-It's $(dye bold "$(dye cyan "respectful")"
-	) because it carefully determines whether to enable
+It's {{bold}}{{cyan}}respectful{{reset
+}} because it carefully determines whether to enable
 color based on environment as well as user and developer preferences.
-$(dye italic "(Try this demo again with NO_COLOR set!)")
+{{i}}(Try this demo again with NO_COLOR set!){{end i}}
 
-$(dye yellow)It has lots of colors and emphases:$(dye reset)
+{{yellow}}{{bold}}It has lots of colors and emphases:{{reset}}
 
-It lets you use many $(dye red "c"
-	)$(dye yellow "o"
-	)$(dye green "l"
-	)$(dye cyan "o"
-	)$(dye blue "r"
-	)$(dye magenta "s"
-	) as well as $(dye ul "several"
-	) $(dye i "cool"
-	) $(dye bold "text"
-	) $(dye so "styles").
+It lets you use many {{red}}c{{yellow}}o{{green}}l{{cyan}}o{{blue
+}}r{{magenta}}s as well as {{ul}}several{{end ul}} {{i}}cool{{end i}} {{bold
+}}text{{reset}} {{so}}styles{{end so}}.
 
-(And no, we didn't forget $(dye bg blue "$(dye yellow "background colors")")!)
+(And no, we didn't forget {{bg blue}}{{yellow}}background colors{{reset}}!)
 
-$(dye dim "You can even do dark $(dye red "c")$(dye dim
-	)$(dye yellow "o")$(dye dim
-	)$(dye green "l")$(dye dim
-	)$(dye cyan "o")$(dye dim
-	)$(dye blue "r")$(dye dim
-	)$(dye magenta "s")$(dye dim
-	) if you want...")
+{{dim}}You can even do dark {{red}}c{{yellow}}o{{green}}l{{cyan}}o{{blue
+}}r{{magenta}}s {{white}}if you want...{{reset}}
 
-$(dye yellow)It supports $(dye begin ul)256-color terminals$(dye end ul)*:$(dye reset)
+{{yellow}}{{bold}}It supports {{ul}}256-color terminals{{end ul}}*:{{reset}}
 
-EOT
+"
 
 print_range() (
 	i="$1"
@@ -65,7 +50,6 @@ print_range() (
 	while [ "${i}" -le "${end}" ]; do
 		dye fg "${i}"
 		printf "%3s " "${i}"
-		dye reset
 		i=$((i + 1))
 	done
 	printf "\n"
@@ -91,27 +75,24 @@ printf "\n"
 print_range 232 243
 print_range 244 255
 
-cat <<EOT
+dye reset
 
-$(dye i "*Not what you expected? Check your TERM environment variable.")
+dye write "\
 
-$(dye yellow)It can be used several ways:$(dye reset)
+          {{i
+}}*Not what you expected? Check your TERM environment variable.{{end i}}
 
-$(dye bold "$(dye blue "==>")") Wrapping quoted text: $(
-	dye so "Like \$(dye green \"this\").")
+{{yellow}}{{bold}}It's super easy to use:{{reset}}
 
-$(dye bold "$(dye blue "==>")") Unquoted text: $(
-	dye so "Like \$(dye green this, if whitespace is not important.)")
+{{so}}                                                       {{end so}}
+{{so}}  dye print 'Just like \{{red}}\{{bold}}this\{{reset}}!'  {{end so}}
+{{so}}                                                       {{end so}}
 
-$(dye bold "$(dye blue "==>")") Manual: $(
-	dye so "Like \$(dye green)this\$(dye reset).")
+You can embed it or source it, depending on your needs. You can also
+just use parts of it, like the enable-color detection.
 
-You can embed it or source it, depending on your needs.
+{{i}}And it's {{ul}}completely tested{{end ul}} with {{bold}}shellspec{{reset}}!
 
-You can also just use parts of it, like the enable-color detection.
+Get it at {{brightblue}}{{ul}}https://mattiebee.dev/dye{{reset}}.
 
-And it's $(dye ul "completely tested") with $(dye bold "shellspec")!
-
-$(dye brightblue)$(dye bold)https://mattiebee.dev/dye$(dye reset)
-
-EOT
+"

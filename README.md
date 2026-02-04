@@ -34,7 +34,7 @@ It's respectful because:
 
 -   it is written to only put functions and environment variables prefixed with "dye" or "DYE" into the shell's global namespace, and carefully avoids clobbering any existing shell variables during operation.
 
-dye does call tput(1) for every terminal sequence it needs to output, so it's not screamingly fast. However, in practice, it's more than fast enough for the job I need it for: making the output of shell scripts colorful to make them easier to read and scan. If you're working with lots of color (for example, creating [ANSI art](https://en.wikipedia.org/wiki/ANSI_art)), it's probably best to stick to a solution that caches ANSI sequences and forgo the portability.
+dye does call [tput](https://pubs.opengroup.org/onlinepubs/9799919799/utilities/tput.html) for every terminal sequence it needs to output, so it's not screamingly fast. However, in practice, it's more than fast enough for the job I need it for: making the output of shell scripts colorful to make them easier to read and scan. If you're working with lots of color (for example, creating [ANSI art](https://en.wikipedia.org/wiki/ANSI_art)), it's probably best to stick to a solution that caches ANSI sequences and forgo the portability.
 
 I wrote dye to replace my previous project, [portable-color](https://mattiebee.dev/portable-color). portable-color was fine, but would load lots of functions into the shell's global namespace. dye has a better API, with more capabilities and conveniences.
 
@@ -42,11 +42,13 @@ I wrote dye to replace my previous project, [portable-color](https://mattiebee.d
 
 ### Embedding
 
-You can use dye in your script by copying the contents of [dye.sh](./dye.sh) above the place you will use it.
+You can use dye in your script by copying the contents of [dye.sh](./dye.sh) into your script so that the functions are defined before you use them.
 
 This the method I recommend. Shell scripts that I write are generally made to be self-contained, and embedding makes them very easy to download and use.
 
 A couple notes on this strategy:
+
+-   If you don't want dye's over 100 lines of code at the top of your script, wrap your main code in a function, then insert all of dye's code, and finally call your main function at the end.
 
 -   If you end up changing dye's code, consider changing the names of the dye functions and variables that end up in the shell's global namespace, to avoid conflicts with the standard dye code that may be depended on elsewhere—particularly if you're removing functionality you do not use.
 
@@ -82,7 +84,68 @@ An alternate mode for "setup" will not enable color by default, but will enable 
 dye setup default-off
 ```
 
+### Templates
+
+The best way to use dye is with its built-in templates.
+
+Templates embed other dye commands inside a single string.
+
+```shell
+dye print "{{green}}It's not easy being... well, you know.{{reset}}"
+```
+
+Like ["echo"](https://pubs.opengroup.org/onlinepubs/9799919799/utilities/echo.html), "dye print" ends its output with a newline.
+("dye p" is a shorthand for "dye print" and highly recommended.)
+
+Note that _unlike_ "echo" on many systems, control characters are not automatically parsed. Whatever the shell passes to "dye print" is only processed according to [two simple syntax rules](#syntax).
+
+```shell
+dye write "So {{bold}}bold{{reset}}, it's not recommended "
+dye write "for human consumption!"
+```
+
+"dye write" is the same, except it does not end its output with a newline.
+
+#### Syntax
+
+Templates have two basic syntax rules:
+
+1.  Text between double curly braces ("{{" and "}}") is interpreted as a dye command. The curly braces are not printed.
+
+2.  A backslash ("\") escapes the next character if it is either a backlash or left curly brace. The backslash itself is not printed. Useful if you want to print two left curly braces.
+
+#### Multiline strings
+
+dye commands between double curly braces, and as such can have trailing spaces added to enable multiline strings:
+
+```shell
+dye print "We have an {{bold
+}}awful{{reset}} lot to say across {{bold
+}}many{{reset}} lines."
+```
+
+#### Escaping backslashes
+
+There is one caveat to the syntax rules. If you're using double quotes, the backslash behavior can be a bit unintuitive in one case.
+
+```shell
+dye print "a\\{{red}}/b"
+```
+
+This actually prints "a{{red}}/b", because the double backlash is interpreted as a single backslash by the shell before dye even sees it. dye then interprets the resulting "\\{" as escaping "{".
+
+Escaping both backslashes passes through "\\\\" to dye's engine, which in turn interprets it as an escaped single-backslash. This prints `a\/b` with a red color change in the middle:
+
+```shell
+dye print "a\\\\{{red}}/b"
+```
+
+Using single-quoted strings works around this issue, but of course sacrifices the variable interpolation you get with double-quoted strings. 
+
 ### Wrapping text
+
+> [!NOTE]
+> Wrapping text is deprecated due to the awkwardness of dealing with [resets](#resets) and the extra weirdness of [unquoted wrapping](#unquoted-wrapping), and is likely to be removed in a future major version.
 
 For simple [color](#colors) and [emphasis](#emphases), using dye to wrap quoted text is the most convenient method.
 
@@ -93,6 +156,8 @@ echo "$(dye green "It's not easy being... well, you know.")"
 ```shell
 echo "So $(dye bold "bold"), it's not recommended for human consumption\!"
 ```
+
+#### Unquoted wrapping
 
 Quoting text is also not *strictly* necessary, but can result in the need to use many more escapes (just like it would if using "echo" straight up). It also means whitespace gets collapsed, so beware!
 
@@ -108,7 +173,7 @@ dye will send this reset sequence at the end of wrapped text for colors and sele
 
 ### Manual control
 
-More complex markup is easier to manage with manual control:
+You can generally use [command substitution](https://pubs.opengroup.org/onlinepubs/9799919799/utilities/V3_chap02.html#tag_19_06_03) to capture the output from manual control commands so it can all be strung together:
 
 ```shell
 echo "$(dye cyan)$(dye bold)Cyan$(dye reset), $(dye magenta)$(dye bold
@@ -117,6 +182,8 @@ echo "$(dye cyan)$(dye bold)Cyan$(dye reset), $(dye magenta)$(dye bold
 ```
 
 Using lots of manual control can make lines pretty long, but as you can see, you can also leverage the fact that line breaks are valid inside command substitution to break them up.
+
+It's better (and shorter!) to use [templates](#templates), though. Capturing the output of dye works in most cases, but could break in some obscure situations.
 
 ### Colors
 
@@ -144,20 +211,22 @@ There's the basic ANSI color set:
 "dye yellow" will set the foreground color to yellow, for example. There are also "fg" and "bg" commands that will explicitly set the foreground or background color, respectively:
 
 ```shell
-echo "$(dye bg blue)$(dye fg yellow)In Ann Arbor, everything is this color.$(dye reset)"
+dye print '{{bg blue}}{{fg yellow}}In Ann Arbor, everything is this color.{{reset}}'
 ```
+
+Turning colors off requires replacing them with a different color, or a [reset](#resets).
 
 #### High colors
 
-Some terminal definitions, like "ansi" and "xterm", don't recognize colors higher than 7. If "DYE_COLORS" is 8, indicating this scenario, dye will synthesize "bright" colors by turning on "bold" and setting the non-bright equivalent.
+Some terminal definitions, like "ansi" and "xterm", don't recognize colors higher than 7. If only colors 0-7 are supported, indicated by "DYE_COLORS" being set to 8 (via [setup](#initialization)), dye will synthesize "bright" colors by turning on "bold" and setting the non-bright equivalent color. (Some terminals will, in turn, render this with a bright color!)
 
 Note that this also means that "bold" may be turned on unexpectedly if you're using "bright" colors—so keep this situation in mind:
 
+-   If you're using templates or manual control, be sure to reset at the appropriate time if the possiblity that "bold" might be on.
+
 -   If you're nesting wrapped text, make sure that nested text deals with the fact that "bold" might be on if you're using a "bright" color.
 
--   If you're using manual control, be sure to reset at the appropriate time if the possiblity that "bold" might be on.
-
-You can test to see how your code is working by setting TERM to "ansi" or "xterm" on many systems.
+You can test your code in this situation by setting "TERM" to "ansi" or "xterm" on many systems.
 
 ### Emphases
 
@@ -181,17 +250,17 @@ The second group have "end" terminal sequences that can turn them off explicitly
 -   `standout` (or `so`, often displayed as reversed foreground and background)
 -   `underline` (or `ul`, or `u`)
 
-When using one of these, you don't have to re-enable other modes:
+When using one of these, you don't have to re-enable other modes—just "end" them:
 
 ```shell
-echo "$(dye magenta)Mary $(dye italic "had") a little lamb.$(dye reset)"
-echo "$(dye magenta)Mary had a $(dye italic "little") lamb.$(dye reset)"
+dye print "{{magenta}}Mary {{italic}}had{{end italic}} a little lamb.{{reset}}"
+dye print "{{magenta}}Mary had a {{italic}}little{{end italic}} lamb.{{reset}}"
 ```
 
-For manual control, the "end" command can be used for these:
+They also support old-school wrapping:
 
 ```shell
-echo "Visit $(dye ul)https://mattiebee.dev/dye$(dye end ul) to get the code."
+echo "Visit $(dye ul "https://mattiebee.dev/dye") to get the code."
 ```
 
 To match "end", "begin" is also available (and works with all emphases). It behaves the same way as just using the emphasis, e.g. "dye begin italic" is equivalent to "dye italic".
@@ -214,8 +283,8 @@ This is particularly important because dye should run everywhere it can, includi
 
 #### tput
 
-During the development of dye, I did explore things like caching the output of tput(1) so it didn't have to be invoked quite so much.
+During the development of dye, I did explore things like caching the output of "tput" so it didn't have to be invoked quite so much.
 
-The added complexity was really not worth it, since tput(1) is still fast enough (i.e. not at all noticeably slow) for most purposes where a shell script is doing work for at least a small amount of time. The cache would also need to be filled, and most scripts just don't switch colors enough to make it worthwhile.
+The added complexity was really not worth it, since "tput" is still fast enough (i.e. not at all noticeably slow) for most purposes where a shell script is doing work for at least a small amount of time. The cache would also need to be filled, and most scripts just don't switch colors enough to make it worthwhile.
 
-The sequences dye generally uses are simple and unconcerned with this, but there are also interesting details with certain terminal control sequences on certain systems that tput(1) can handle if invoked directly, such as embedded delays. So, the practice also encourages maximum compatibility.
+The sequences dye generally uses are simple and unconcerned with this, but there are also interesting details with certain terminal control sequences on certain systems that "tput" can handle if invoked directly, such as embedded delays. So, the practice also encourages maximum compatibility—especially if using the new template engine, which passes control back and forth between "tput" and "printf".
