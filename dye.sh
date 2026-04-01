@@ -34,6 +34,18 @@ dye_puts() {
 	printf "%s" "$1"
 }
 
+dye_split() (
+	read -r _1 _2 <<EOT
+$2
+EOT
+	if [ -z "${_2-}" ]; then
+		"$1" "${_1}"
+	else
+		"$1" "${_1}" "${_2}"
+	fi
+	return $?
+)
+
 dye_out() (
 	_1="$1"
 	_2="${2-}"
@@ -44,12 +56,12 @@ dye_out() (
 		return
 	fi
 	if [ -z "${_2}" ] || [ -z "${1-}" ]; then
-		eval "tput ${_1}" || true
+		dye_split tput "${_1}" || true
 		return
 	fi
-	eval "tput ${_1}" || true
+	dye_split tput "${_1}" || true
 	dye_puts "$*"
-	eval "tput ${_2}" || true
+	dye_split tput "${_2}" || true
 )
 
 dye_color() (
@@ -94,7 +106,7 @@ dye_render() (
 			p="${b#\{\{}"
 			b="${p#*\}\}}"
 			p="${p%%\}\}*}"
-			eval "dye ${p}"
+			dye_split dye "${p}"
 			;;
 		*)
 			s1="${b%%\{\{*}"

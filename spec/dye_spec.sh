@@ -342,6 +342,18 @@ Describe "dye"
 			When call run
 			The output should equal "\e{setaf;1}these \e{setaf;3}words \e{setaf;2}stay \e{setaf;6}on \e{setaf;4}one \e{setaf;5}line"
 		End
+
+		Example "write won't run arbitrary code"
+			hacked="$(mktemp -d)/hacked"
+			run() {
+				dye write "{{red ;touch ${hacked}}}r3dz0r"
+			}
+
+			Path hacked-ioc="${hacked}"
+			When call run
+			The output should equal "\e{setaf;1};touch ${hacked}\e{sgr0}r3dz0r"
+			The path hacked-ioc should not be a file
+		End
 	End
 
 	Describe "setup"
