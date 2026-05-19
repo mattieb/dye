@@ -403,6 +403,7 @@ Describe "dye"
 			dye_detect() {
 				return 1
 			}
+			# shellcheck disable=SC2329
 			tput() {
 				return 1
 			}
@@ -414,7 +415,6 @@ Describe "dye"
 	End
 
 	Describe "templates"
-		# shellcheck disable=SC2034
 		DYE_COLORS=256
 
 		Example "basic colored text"
@@ -432,6 +432,51 @@ Describe "dye"
 		Example "leading and trailing text, multi-word commands"
 			When call dye_render "templating is {{italic}}very{{end italic}} cool!"
 			The output should equal "templating is \e{sitm}very\e{ritm} cool!"
+		End
+	End
+
+	Describe "control sequencing"
+		Example "only prints third argument if DYE_COLORS is unset"
+			# shellcheck disable=SC2329
+			tput() {
+				# shellcheck disable=SC2034
+				called=1
+				%preserve called
+			}
+
+			unset DYE_COLORS
+			When call dye red "red text"
+			The variable called should be undefined
+			The output should equal "red text"
+		End
+
+		Example "calls tput once if DYE_COLORS is set and no text is present"
+			# shellcheck disable=SC2329
+			tput() {
+				# shellcheck disable=SC2034
+				arg1="$1"
+				# shellcheck disable=SC2034
+				arg2="${2-}"
+				%preserve arg1 arg2
+			}
+
+			DYE_COLORS=256
+			When call dye red
+			The variable arg1 should equal "setaf"
+			The variable arg2 should equal "1"
+		End
+
+		Example "outputs start sequence, text, and end sequence if DYE_COLORS is set and text is present"
+			tput() {
+				test "$1" = "setaf" -a "${2-}" = "1" && printf "%s" "!RED!" && return 0
+				test "$1" = "sgr0" && printf "%s" "!RESET!" && return 0
+				return 1
+			}
+
+			# shellcheck disable=SC2034
+			DYE_COLORS=256
+			When call dye red "red text"
+			The output should equal "!RED!red text!RESET!"
 		End
 	End
 End
