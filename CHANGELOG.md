@@ -14,3 +14,6 @@ Initial version.
 
 -   SECURITY: Changes the implementation of dye template expressions to stop shell commands from being injected in text. For a full writeup, see [Security advisory: dye template injection](https://mattiebee.io/dye-template-advisory/). This issue was discovered and fixed by dye's author, and is not known to be exploited.
 
+# 1.1.2
+
+-   Adds support for Debian's [Policy-compliant Ordinary SHell](https://tracker.debian.org/pkg/posh).

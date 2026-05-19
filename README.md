@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> dye's public source code repository is now hosted on [Codeberg](https://codeberg.org) at [mattiebee/dye](https://codeberg.org/mattiebee/dye). The original public source code repository at [GitHub](https://github.com) is now a best-effort mirror. Releases will only be published at Codeberg.
+
 # [dye](https://mattiebee.dev/dye)
 
 -   [About](#about)
@@ -16,7 +19,7 @@ It's portable because
 
 -   it works on many Unix systems, including macOS, Linux, and OpenBSD;
 
--   it is written to [the POSIX shell standard](https://pubs.opengroup.org/onlinepubs/9799919799/utilities/V3_chap02.html#tag_19), so it works in many shells that are POSIX-compatible, such as [ash and Dash](https://en.wikipedia.org/wiki/Almquist_shell), [Bash](https://www.gnu.org/software/bash/), [ksh](https://en.wikipedia.org/wiki/KornShell), and [Zsh](https://zsh.sourceforge.io);
+-   it is written to [the POSIX shell standard](https://pubs.opengroup.org/onlinepubs/9799919799/utilities/V3_chap02.html#tag_19), so it works in many shells that are POSIX-compatible, such as [ash and Dash](https://en.wikipedia.org/wiki/Almquist_shell), [Bash](https://www.gnu.org/software/bash/), [ksh](https://en.wikipedia.org/wiki/KornShell), [posh](https://packages.debian.org/sid/posh), and [Zsh](https://zsh.sourceforge.io);
 
 -   it uses [tput(1)](https://man.openbsd.org/tput) instead of hard-wired ANSI sequences, so it will work wherever the appropriate [terminal capabilities](https://man.openbsd.org/terminfo.5) are available, and gracefully degrade where they are not; and
 
