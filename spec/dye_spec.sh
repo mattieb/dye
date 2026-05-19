@@ -1,9 +1,10 @@
-# shellcheck shell=sh disable=SC2034,SC2329
+# shellcheck shell=sh
 
 Describe "dye"
 	Include "./dye.sh"
 
 	# useful for all dye tests
+	# shellcheck disable=SC2329
 	tput() {
 		test -n "${2-}" && printf "%s" "\e{$1;$2}" && return
 		test -n "$1" -a "${2-unset}" = "unset" && printf "%s" "\e{$1}" && return
@@ -318,6 +319,7 @@ Describe "dye"
 		DYE_COLORS=256
 
 		Example "print adds newlines"
+			# shellcheck disable=SC2329
 			run() {
 				dye print "we needed {{bold}}templating{{reset}}"
 				dye print "and didn't know it"
@@ -330,10 +332,12 @@ Describe "dye"
 			}
 
 			When call run
+			# shellcheck disable=SC2312
 			The output should equal "$(expected)"
 		End
 
 		Example "write doesn't use newlines"
+			# shellcheck disable=SC2329
 			run() {
 				dye write "{{red}}these {{yellow}}words {{green}}stay "
 				dye write "{{cyan}}on {{blue}}one {{magenta}}line"
@@ -358,6 +362,7 @@ Describe "dye"
 
 	Describe "setup"
 		Example "no arguments"
+			# shellcheck disable=SC2329
 			dye_detect() {
 				args="$*"
 				%preserve args
@@ -368,7 +373,9 @@ Describe "dye"
 		End
 
 		Example "default-off"
+			# shellcheck disable=SC2329
 			dye_detect() {
+				# shellcheck disable=SC2034
 				args="$*"
 				%preserve args
 			}
@@ -378,9 +385,11 @@ Describe "dye"
 		End
 
 		Example "sets DYE_COLORS if dye_detect succeeds"
+			# shellcheck disable=SC2329
 			dye_detect() {
 				return 0
 			}
+			# shellcheck disable=SC2329
 			tput() {
 				[ "$1" = "colors" ] && echo 256
 			}
@@ -401,6 +410,28 @@ Describe "dye"
 			unset DYE_COLORS
 			When call dye setup
 			The variable DYE_COLORS should be undefined
+		End
+	End
+
+	Describe "templates"
+		# shellcheck disable=SC2034
+		DYE_COLORS=256
+
+		Example "basic colored text"
+			When call dye_render "{{red}}R{{green}}G{{blue}}B{{reset}}"
+			The output should equal "\e{setaf;1}R\e{setaf;2}G\e{setaf;4}B\e{sgr0}"
+		End
+
+		Example "text with escaped curly braces"
+			# shellcheck disable=SC1003
+			When call dye_render '{{red}}\{{R}}{{green}}{\{G}}{{blue}}\\B{{reset}}}\'
+			# shellcheck disable=SC1003
+			The output should equal '\e{setaf;1}{{R}}\e{setaf;2}{{G}}\e{setaf;4}\B\e{sgr0}}\'
+		End
+
+		Example "leading and trailing text, multi-word commands"
+			When call dye_render "templating is {{italic}}very{{end italic}} cool!"
+			The output should equal "templating is \e{sitm}very\e{ritm} cool!"
 		End
 	End
 End
