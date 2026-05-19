@@ -1,6 +1,6 @@
 # shellcheck shell=sh
 #
-# Copyright 2025 Mattie Behrens.
+# Copyright 2025, 2026 Mattie Behrens.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the “Software”), to deal
@@ -60,7 +60,7 @@ dye_out() (
 		return
 	fi
 	dye_split tput "${_1}" || true
-	dye_puts "$*"
+	dye_puts "${*-}"
 	dye_split tput "${_2}" || true
 )
 
@@ -131,7 +131,7 @@ dye_render() (
 dye() {
 	if [ "$1" = "setup" ]; then
 		shift
-		dye_detect "$@" && DYE_COLORS="$(tput colors)"
+		dye_detect "${@-}" && DYE_COLORS="$(tput colors)"
 		return 0
 	fi
 
@@ -140,32 +140,32 @@ dye() {
 		shift
 		case "${_1}" in
 		p | print)
-			dye_render "$@"
+			dye_render "${@-}"
 			printf "\n"
 			;;
 		write)
-			dye_render "$@"
+			dye_render "${@-}"
 			;;
 		fg)
 			c="$(dye_color "$1")" || return
 			c="$(dye_synth "${c}")" || dye_out bold
 			shift
-			dye_out "setaf ${c}" "sgr0" "$@"
+			dye_out "setaf ${c}" "sgr0" "${@-}"
 			;;
 		bg)
 			c="$(dye_color "$1")" || return
 			c="$(dye_synth "${c}")" || true
 			shift
-			dye_out "setab ${c}" "sgr0" "$@"
+			dye_out "setab ${c}" "sgr0" "${@-}"
 			;;
-		dim) dye_out "dim" "sgr0" "$@" ;;
-		bold) dye_out "bold" "sgr0" "$@" ;;
-		reverse) dye_out "rev" "sgr0" "$@" ;;
+		dim) dye_out "dim" "sgr0" "${@-}" ;;
+		bold) dye_out "bold" "sgr0" "${@-}" ;;
+		reverse) dye_out "rev" "sgr0" "${@-}" ;;
 		reset) dye_out "sgr0" ;;
-		i | italic) dye_out "sitm" "ritm" "$@" ;;
-		so | standout) dye_out "smso" "rmso" "$@" ;;
-		u | ul | underline) dye_out "smul" "rmul" "$@" ;;
-		begin) dye "$@" ;;
+		i | italic) dye_out "sitm" "ritm" "${@-}" ;;
+		so | standout) dye_out "smso" "rmso" "${@-}" ;;
+		u | ul | underline) dye_out "smul" "rmul" "${@-}" ;;
+		begin) dye "${@-}" ;;
 		end)
 			case "$1" in
 			i | italic) dye_out "ritm" ;;
@@ -175,7 +175,7 @@ dye() {
 			esac
 			;;
 		*)
-			dye fg "${_1}" "$@"
+			dye fg "${_1}" "${@-}"
 			;;
 		esac
 	)

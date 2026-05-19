@@ -1,0 +1,13 @@
+#!/bin/sh
+
+scriptdir="$(dirname "$0")"
+
+docker build \
+	-t dye-docker-test \
+	"${scriptdir}"
+
+docker run \
+	-it \
+	--rm \
+	-v "${scriptdir}/..:/mnt" \
+	dye-docker-test zsh

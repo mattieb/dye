@@ -2,7 +2,7 @@
 
 set -e
 
-for shell in bash dash ksh zsh; do
+for shell in bash dash ksh posh zsh; do
     shell_path="$(command -v "${shell}")"
     if [ -x "${shell_path}" ]; then
         shellspec -s "${shell_path}"
