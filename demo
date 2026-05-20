@@ -32,8 +32,8 @@ color based on environment as well as user and developer preferences.
 {{yellow}}{{bold}}It has lots of colors and emphases:{{reset}}
 
 It lets you use many {{red}}c{{yellow}}o{{green}}l{{cyan}}o{{blue
-}}r{{magenta}}s as well as {{ul}}several{{end ul}} {{i}}cool{{end i}} {{bold
-}}text{{reset}} {{so}}styles{{end so}}.
+}}r{{magenta}}s{{reset}} as well as {{ul}}several{{end ul}}{{i
+}}cool{{end i}} {{bold}}text{{reset}} {{so}}styles{{end so}}.
 
 (And no, we didn't forget {{bg blue}}{{yellow}}background colors{{reset}}!)
 
